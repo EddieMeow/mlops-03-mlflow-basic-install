@@ -230,6 +230,22 @@ helm repo update
 helm search repo bitnami/postgresql
 ```
 
+The MLflow chart used by this project comes from
+[community-charts](https://github.com/community-charts/helm-charts):
+
+```bash
+helm repo add community-charts https://community-charts.github.io/helm-charts
+helm repo update
+helm search repo community-charts/mlflow
+```
+
+That chart is currently **1.11.7 (app version 3.16.0)** — the same MLflow version
+installed in this project's venv. Inspect its configurable values before installing:
+
+```bash
+helm show values community-charts/mlflow
+```
+
 ### Common Helm commands
 
 | Command | Purpose |
