@@ -143,6 +143,59 @@ This creates an experiment called `basic-install-check` and logs one run. Where 
 data lands depends on `MLFLOW_TRACKING_URI`: unset, it goes to `mlruns/`; set to the
 server, it goes into `mlflow.db`. Both are git-ignored.
 
+## Kubernetes cluster (kind)
+
+A local single-node Kubernetes cluster for deploying MLflow to k8s.
+[kind](https://kind.sigs.k8s.io/) runs Kubernetes inside Docker containers, so
+**Docker must be running** first.
+
+### Prerequisites
+
+```bash
+brew install kind        # kind itself
+brew install kubectl     # if you don't already have it
+```
+
+Versions used here: kind 0.33.0, kubectl v1.34.1, Kubernetes v1.37.0.
+
+### Create the cluster
+
+```bash
+kind create cluster --name basic-mlflow-cluster
+```
+
+First run downloads the node image (~1 GB) and takes a few minutes. This also sets
+your kubectl context to `kind-basic-mlflow-cluster` automatically.
+
+### Verify it
+
+```bash
+kind get clusters                    # -> basic-mlflow-cluster
+kubectl config current-context       # -> kind-basic-mlflow-cluster
+kubectl get nodes                    # -> control-plane, Ready
+kubectl get pods -n kube-system      # all Running
+```
+
+The node reports `NotReady` for the first ~20 seconds while the CNI starts. Wait for
+it rather than assuming a failure:
+
+```bash
+kubectl wait --for=condition=Ready node --all --timeout=180s
+```
+
+### Cluster management
+
+| Command | Purpose |
+| --- | --- |
+| `kind get clusters` | List local kind clusters |
+| `kubectl config use-context kind-basic-mlflow-cluster` | Switch kubectl to this cluster |
+| `kind load docker-image <image> --name basic-mlflow-cluster` | Make a local image available to the cluster (kind can't pull from your host daemon) |
+| `kind delete cluster --name basic-mlflow-cluster` | Delete the cluster and everything in it |
+
+Note that a kind cluster's state lives in Docker — stopping Docker Desktop stops the
+cluster, and deleting the container destroys it. It's disposable by design; recreate
+with the same command.
+
 ## Common commands
 
 | Command | Purpose |
