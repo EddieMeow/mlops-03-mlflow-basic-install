@@ -14,7 +14,8 @@ dist/
 venv/
 env/
 ENV/
-.python-version
+
+# (.python-version is tracked: it pins the project's Python for uv)
 
 # MLflow
 mlruns/
