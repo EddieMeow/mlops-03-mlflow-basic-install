@@ -196,7 +196,64 @@ Note that a kind cluster's state lives in Docker — stopping Docker Desktop sto
 cluster, and deleting the container destroys it. It's disposable by design; recreate
 with the same command.
 
-## Common commands
+## Helm
+
+[Helm](https://helm.sh/) is the package manager for Kubernetes — it installs
+*charts* (templated bundles of Kubernetes YAML) instead of you hand-writing a
+Deployment, Service, ConfigMap and PVC for every app.
+
+### Install
+
+```bash
+brew install helm
+helm version
+```
+
+Version used here: **Helm v4.3.0**. Helm reads the same kubeconfig as kubectl, so it
+targets whatever your current context is — check with `kubectl config current-context`
+before installing anything.
+
+### Concepts
+
+| Term | Meaning |
+| --- | --- |
+| **Chart** | The package: templated k8s manifests plus metadata |
+| **Values** | Configuration knobs (`values.yaml`); override with `--set` or `-f` |
+| **Release** | One installed instance of a chart in the cluster |
+| **Repository** | Where charts are hosted |
+
+### Add a chart repository
+
+```bash
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo update
+helm search repo bitnami/postgresql
+```
+
+### Common Helm commands
+
+| Command | Purpose |
+| --- | --- |
+| `helm install <release> <chart>` | Install a chart as a named release |
+| `helm install <release> <chart> --wait` | Install and block until pods are Ready |
+| `helm list` | List releases in the current namespace |
+| `helm upgrade <release> <chart> --set key=value` | Change config / upgrade a release |
+| `helm rollback <release> <revision>` | Roll back to an earlier revision |
+| `helm uninstall <release>` | Remove the release and its resources |
+| `helm show values <chart>` | Print a chart's configurable values |
+| `helm template <release> <chart>` | Render manifests locally without installing |
+
+`helm upgrade` and `helm rollback` are the real advantage over raw `kubectl apply`:
+Helm keeps a revision history per release, so a bad deploy is one command to undo.
+
+### Relevance to MLflow
+
+Deploying MLflow to Kubernetes usually means three Helm releases: MLflow itself,
+**PostgreSQL** to replace the SQLite backend store, and **MinIO** (S3-compatible) to
+replace the local `mlartifacts/` directory — since pods are ephemeral and a SQLite
+file on local disk doesn't survive a restart or scale past one replica.
+
+## Project command reference
 
 | Command | Purpose |
 | --- | --- |
